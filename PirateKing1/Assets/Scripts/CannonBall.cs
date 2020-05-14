@@ -12,12 +12,18 @@ public class CannonBall : MonoBehaviour
             col.gameObject.GetComponent<BotShip>().TakeDamage(cannonDamage);
             Destroy(gameObject);
         }
-        else if(col.tag=="Island")
+        else if (col.tag == "MyShip")
+        {
+            col.gameObject.GetComponent<ShipController>().TakeDamage(cannonDamage);
+            print("Touch");
+            Destroy(gameObject);
+        }
+        else if (col.tag == "Island")
         {
 
         }
 
-        Destroy(gameObject,2);
+       // Destroy(gameObject,2);
     }
 
     

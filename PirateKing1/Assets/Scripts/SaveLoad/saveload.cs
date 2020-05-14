@@ -11,12 +11,22 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 public class saveload : MonoBehaviour
 {
-    public static int health;
-    public static int fuel;
-    public static int money;
-    public static int armor;
-    public static int speed;
+    public static float health;
+    public static float maxhealth;
+    public static float fuel;
+    public static float maxfuel;
+    public static float money;
+    public static float armor;
+    public static float maxarmor;
+    public static float speed;
+    public static int cannonCount;
+    public static int maxcannonCount;
 
+    public static int healthBuy=100;
+    public static int armorBuy=100;
+    public static int fuelBuy=100;
+    public static int speedBuy=500;
+    public static int cannonBuy=1000;
 
     public static string accountID = " ";
     public static string playerName = " ";
