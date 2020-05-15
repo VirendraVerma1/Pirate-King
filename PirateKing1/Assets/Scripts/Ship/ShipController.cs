@@ -27,8 +27,8 @@ public class ShipController : MonoBehaviour
         saveload.maxhealth = 100;
         saveload.armor = 100;
         saveload.maxarmor = 100;
-        saveload.maxfuel = 1000;
-        saveload.fuel = 1000;
+        saveload.maxfuel = 600;
+        saveload.fuel = 600;
         saveload.speed = 2;
         saveload.maxcannonCount = ShipCannonsGo.Length;
         saveload.cannonCount = 2;
@@ -91,11 +91,18 @@ public class ShipController : MonoBehaviour
 
     #region ShipMovement
 
-    // Update is called once per frame
+    public Joystick joystick;
+    public bool isAndroid;
     void Update()
     {
         float moveHorizontal = Input.GetAxisRaw("Horizontal");
         float moveVertical = Input.GetAxisRaw("Vertical");
+
+        if (isAndroid)
+        {
+            moveHorizontal = joystick.Horizontal;
+            moveVertical = joystick.Vertical;
+        }
 
         Vector3 movement = new Vector3(moveHorizontal, 0.0f, moveVertical);
         if (movement != Vector3.zero) transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(movement.normalized), time);
@@ -110,11 +117,21 @@ public class ShipController : MonoBehaviour
     #endregion
 
     public Text TotalEnemy;
+    public GameObject GameWonPannel;
+
     void CheckEnemy()
     {
         GameObject[] go = GameObject.FindGameObjectsWithTag("Ship");
         TotalEnemy.text = go.Length + "/" + totalEnemy;
+
+        if (go.Length < 1)
+        {
+            //game won
+            GameWonPannel.SetActive(true);
+        }
     }
+
+    
 
     #region Ship Fire
     
@@ -142,7 +159,7 @@ public class ShipController : MonoBehaviour
     #endregion
 
     #region other public methods
-
+    public GameObject GameLoosePannel;
     public void TakeDamage(float damagea)
     {
         if (saveload.armor > damagea)
@@ -155,6 +172,7 @@ public class ShipController : MonoBehaviour
         if (saveload.health < 0)
         {
             //sink TODO
+            GameLoosePannel.SetActive(true);
             Destroy(gameObject);
         }
         

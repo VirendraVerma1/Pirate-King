@@ -15,6 +15,13 @@ public class BotShip : MonoBehaviour
     private float money;
     public float fuel;
     private float fuelTank;
+    private float cannon;
+
+    private int healthlvl;
+    private int armorlvl;
+    private int speedlvl;
+    private int fuellvl;
+    private int cannonlvl;
 
     public NavMeshAgent agent;
     public GameObject[] ShipCannonsGo;
@@ -28,6 +35,9 @@ public class BotShip : MonoBehaviour
     private float FollowCounter = 1000;
 
     private bool islowFuel = false;
+
+    public bool isEnableShop = false;
+   
     void Start()
     {
         health = 100;
@@ -36,8 +46,15 @@ public class BotShip : MonoBehaviour
         maxArmor = 100;
         speed = 2;
         money = 100;
-        fuel = 1000;
-        fuelTank = 1000;
+        fuel = 600;
+        fuelTank = 600;
+
+        healthlvl = 1;
+        armorlvl = 1;
+        speedlvl = 1;
+        fuellvl = 1;
+        cannonlvl = 1;
+        cannon = 4;
 
         Cannontimer = 2;
         Cannoncounter = 1;
@@ -49,6 +66,21 @@ public class BotShip : MonoBehaviour
         FuelStatonChecker();
         StartCoroutine(ReduceFuel());
         StartCoroutine(UpdateEffect());
+        UnlockCannon();
+    }
+
+    public void UnlockCannon()
+    {
+        for (int i = 0; i < ShipCannonsGo.Length; i++)
+        {
+            ShipCannonsGo[i].SetActive(false);
+        }
+
+        for (int i = 0; i < cannon; i++)
+        {
+            ShipCannonsGo[i].SetActive(true);
+        }
+
     }
 
     IEnumerator ReduceFuel()
@@ -57,6 +89,10 @@ public class BotShip : MonoBehaviour
         while (n>0)
         {
             yield return new WaitForSeconds(1);
+
+            if (health > 50)
+                followchest = false;
+
             //print(fuel);
             fuel -= 1;
             if (fuel < 200)
@@ -66,8 +102,8 @@ public class BotShip : MonoBehaviour
                 islowFuel = true;
                 
                 float distance = Vector3.Distance(gameObject.transform.position, NearestFuelStation.transform.position);
-                print(distance);
-                if (distance > 10)
+                
+                if (distance > 20)
                 {
                     agent.enabled = true;
                     SetPathOfBot(NearestFuelStation.transform.position);
@@ -77,7 +113,7 @@ public class BotShip : MonoBehaviour
                     agent.enabled = false;
                 }
             }
-            else if (fuel > 900)
+            else if (fuel > fuelTank-50)
             {
                 //high fuel
                 
@@ -92,7 +128,7 @@ public class BotShip : MonoBehaviour
     {
         RefreshThings();
 
-        if (!islowFuel)
+        if (!islowFuel && !followchest)
         {
             CheckIfEnemyClose();
 
@@ -106,23 +142,35 @@ public class BotShip : MonoBehaviour
                 GetRandomEnemy();
             }
 
-            //Cannon Shoot
-            Cannontimer -= Time.deltaTime;
-            if (CheckEnemyInfrontOfCannon() && fireCannon)
-            {
-                inFrontOfCannon = true;
-            }
-            else
-            {
-                inFrontOfCannon = false;
-            }
-            if (Cannontimer < 0 && fireCannon == true && CheckEnemyInfrontOfCannon())
-            {
-                Cannontimer = Cannoncounter;
-                FireCannon();
-            }
+           
             
         }
+
+        if (followchest&&Nearestchest==null)
+        {
+            print("Get Nearest TreaSure");
+                ChestChecker();
+
+                SetPathOfBot(Nearestchest.transform.position);
+            
+        }
+
+        //Cannon Shoot
+        Cannontimer -= Time.deltaTime;
+        if (CheckEnemyInfrontOfCannon() && fireCannon)
+        {
+            inFrontOfCannon = true;
+        }
+        else
+        {
+            inFrontOfCannon = false;
+        }
+        if (Cannontimer < 0 && fireCannon == true && CheckEnemyInfrontOfCannon())
+        {
+            Cannontimer = Cannoncounter;
+            FireCannon();
+        }
+        
         UpdateUI();
     }
 
@@ -155,6 +203,7 @@ public class BotShip : MonoBehaviour
 
         for (int i = 0; i < FuelStaton.Length; i++)
         {
+            if(FuelStaton[i].GetComponent<FuelSystem>().TotalFuel>0)
             distanceFromAllFuelStation[i] = Vector3.Distance(gameObject.transform.position, FuelStaton[i].transform.position);
         }
     }
@@ -177,9 +226,80 @@ public class BotShip : MonoBehaviour
 
     #endregion
 
+    #region Get and Check Nearest Treasure
+
+    private GameObject[] TreasureChest;
+    private GameObject[] AllIsland;
+    private GameObject[] AllTreasures;
+    private float[] distanceFromAllchest;
+    private GameObject Nearestchest;
+    private float nearestDistanceFromTreasure;
+
+    void ChestChecker()
+    {
+        GetAllChest();
+        CheckChestDistance();
+        GetSortestDistanceChest();
+    }
+
+    void GetAllChest()
+    {
+        AllIsland = GameObject.FindGameObjectsWithTag("Island");
+        AllTreasures = GameObject.FindGameObjectsWithTag("Chest");
+        
+        TreasureChest = new GameObject[AllIsland.Length + AllTreasures.Length];
+        int d = 0;
+        for (int i = 0; i < AllIsland.Length; i++)
+        {
+            if(AllIsland[i].GetComponent<Island>().health>0)
+            TreasureChest[d] = AllIsland[i];
+            d++;
+        }
+        for (int i = 0; i < AllTreasures.Length; i++)
+        {
+            TreasureChest[d] = AllTreasures[i];
+            d++;
+        }
+        
+    }
+
+    void CheckChestDistance()
+    {
+        distanceFromAllchest = new float[TreasureChest.Length];
+        for (int i = 0; i < TreasureChest.Length; i++)
+        {
+            distanceFromAllchest[i] = 999999;
+        }
+
+        for (int i = 0; i < TreasureChest.Length; i++)
+        {
+            if (TreasureChest[i]!=null)
+            distanceFromAllchest[i] = Vector3.Distance(gameObject.transform.position, TreasureChest[i].transform.position);
+        }
+    }
+
+    void GetSortestDistanceChest()
+    {
+        float minDistance = 99999;
+
+        for (int i = 0; i < TreasureChest.Length; i++)
+        {
+
+            if (minDistance > distanceFromAllchest[i])
+            {
+                minDistance = distanceFromAllchest[i];
+                Nearestchest = TreasureChest[i];
+                
+            }
+
+        }
+    }
+
+    #endregion
+
     #region Check And Get Enemy
 
-    
+
     private GameObject[] Enemies;
     private GameObject[] AllEnemies;
     private float[] distanceFromAll;
@@ -246,8 +366,11 @@ public class BotShip : MonoBehaviour
     #endregion
 
     #region When Close to Enemy
+
     bool inFrontOfCannon = false;
     bool fireCannon = false;
+    bool followchest = false;
+
     void CheckIfEnemyClose()
     {
         float distance = Vector3.Distance(gameObject.transform.position, NearestEnemey.transform.position);
@@ -256,8 +379,8 @@ public class BotShip : MonoBehaviour
         {
             GetRandomEnemy();
         }
-        
-        if (distance < 15)
+
+        if (distance < 15 && !followchest)
         {
 
             agent.enabled = false;
@@ -276,6 +399,16 @@ public class BotShip : MonoBehaviour
                 //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(relativePos.normalized), 0.02f);
             }
             fireCannon = true;
+
+            if (health < 40)
+            {
+                followchest = true;
+                agent.enabled = true;
+                ChestChecker();
+
+                SetPathOfBot(Nearestchest.transform.position);
+            }
+
         }
         else if (distance < 100)
         {
@@ -284,10 +417,13 @@ public class BotShip : MonoBehaviour
             agent.enabled = true;
             SetPathOfBot(NearestEnemey.transform.position);
         }
-        else
+        else if(distance>=100)
         {
-            //random
-            SetPathOfBot(Enemies[randomEnemy].transform.position);
+            //treasure find
+            agent.enabled = true;
+            ChestChecker();
+
+            SetPathOfBot(Nearestchest.transform.position);
         }
     }
 
@@ -318,10 +454,10 @@ public class BotShip : MonoBehaviour
     bool CheckEnemyInfrontOfCannon()
     {
         bool enemy = false;
-        foreach (GameObject g in ShipCannonsGo)
+        for (int i = 0; i < cannon; i++)
         {
             RaycastHit hit;
-            GameObject t = g.transform.Find("RayCast").gameObject;
+            GameObject t = ShipCannonsGo[i].transform.Find("RayCast").gameObject;
             Vector3 fwd = t.transform.TransformDirection(Vector3.forward);
             if (Physics.Raycast(t.transform.position, fwd, out hit, 30))
             {
@@ -336,9 +472,9 @@ public class BotShip : MonoBehaviour
 
     void FireCannon()
     {
-        foreach (GameObject g in ShipCannonsGo)
+        for (int i = 0; i < cannon; i++)
         {
-            GameObject go = Instantiate(CannonBallGameObject, g.transform.position + new Vector3(0, 0.45f, 0), g.transform.rotation);
+            GameObject go = Instantiate(CannonBallGameObject, ShipCannonsGo[i].transform.position + new Vector3(0, 0.45f, 0), ShipCannonsGo[i].transform.rotation);
             go.GetComponent<CannonBall>().cannonDamage = 10;
             go.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
             go.transform.GetComponent<Rigidbody>().AddForce(-go.transform.forward * 15, ForceMode.Impulse);
@@ -399,10 +535,10 @@ public class BotShip : MonoBehaviour
             fuel = fuelTank;
 
         UpdateUI();
+        ShopThings();
     }
 
     #endregion
-
 
     #region UI System
 
@@ -420,14 +556,15 @@ public class BotShip : MonoBehaviour
     {
         UpdateUI();
         HealthPannel.SetActive(true);
-        StartCoroutine(UpdateEffect());
+        UpdateNu();
     }
 
+    int fuelpannelnu = 2;
     void ShowFuelUI()
     {
         UpdateUI();
         FuelPannel.SetActive(true);
-        StartCoroutine(UpdateEffect());
+        UpdateNu();
     }
 
     void UpdateUI()
@@ -437,12 +574,79 @@ public class BotShip : MonoBehaviour
         FuelImageBar.rectTransform.localScale = new Vector3(fuel / fuelTank, 1, 1);
         HealthImageBar.rectTransform.localScale = new Vector3(health / maxHealth, 1, 1);
     }
+    void UpdateNu()
+    {
+        fuelpannelnu++;
+        if (fuelpannelnu < 1)
+        {
+            StartCoroutine(UpdateEffect());
+        }
+    }
 
     IEnumerator UpdateEffect()
     {
-        yield return new WaitForSeconds(2);
-        HealthPannel.SetActive(false);
-        FuelPannel.SetActive(false);
+        
+        while (fuelpannelnu > 0)
+        {
+            yield return new WaitForSeconds(2);
+            fuelpannelnu--;
+        }
+        
+            HealthPannel.SetActive(false);
+            FuelPannel.SetActive(false);
+        
+    }
+
+    #endregion
+
+    #region UpgradeSystem
+
+    public void ShopThings()
+    {
+        if (money >= (cannonlvl * 1000))
+        {
+            money -= (cannonlvl * 1000);
+            cannon += 1;
+            if (cannon > ShipCannonsGo.Length)
+            {
+                cannon = ShipCannonsGo.Length - 1;
+            }
+            else
+            {
+                cannonlvl++;
+            }
+
+        }
+        if (money >= (healthlvl * 100))
+        {
+            money -= (healthlvl * 100);
+            maxHealth += 100;
+            health = maxHealth;
+            healthlvl++;
+        } 
+        if (money >= (armorlvl * 100))
+        {
+            money -= (armorlvl * 100);
+            maxArmor += 100;
+            armor = maxArmor;
+            armorlvl++;
+        }
+        if (money >= (fuellvl * 100))
+        {
+            money -= (fuellvl * 100);
+            fuelTank += 200;
+            fuel = fuelTank;
+            fuellvl++;
+        }
+        
+        if (money >= (speedlvl * 500))
+        {
+            money -= (speedlvl * 500);
+            speed += 0.005f;
+
+            speedlvl++;
+        }
+        UnlockCannon();
     }
 
     #endregion

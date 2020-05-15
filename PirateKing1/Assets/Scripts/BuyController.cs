@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+
 
 public class BuyController : MonoBehaviour
 {
@@ -40,11 +42,11 @@ public class BuyController : MonoBehaviour
         SpeedText.text = saveload.speed.ToString();
         CannonCountText.text = saveload.cannonCount+"/"+saveload.maxcannonCount;
 
-        BuyHealth.text = saveload.healthBuy.ToString();
-        BuyArmor.text = saveload.armorBuy.ToString();
-        BuyFuel.text = saveload.fuelBuy.ToString();
-        BuyCannon.text = saveload.cannonBuy.ToString();
-        BuySpeed.text = saveload.speedBuy.ToString();
+        BuyHealth.text = (saveload.healthlvl*100).ToString();
+        BuyArmor.text = (saveload.armorlvl*100).ToString();
+        BuyFuel.text = (saveload.fuellvl*100).ToString();
+        BuyCannon.text = (saveload.cannonlvl*1000).ToString();
+        BuySpeed.text = (saveload.speedlvl*500).ToString();
 
         HealthImageBar.rectTransform.localScale = new Vector3(saveload.health / saveload.maxhealth, 1, 1);
         ArmorImageBar.rectTransform.localScale = new Vector3(saveload.armor / saveload.maxarmor, 1, 1);
@@ -57,12 +59,12 @@ public class BuyController : MonoBehaviour
 
     public void OnHealthBuyButtonPressed()
     {
-        if (saveload.money >= saveload.healthBuy)
+        if (saveload.money >= saveload.healthlvl*100)
         {
-            saveload.money -= saveload.healthBuy;
+            saveload.money -= saveload.healthlvl * 100;
             saveload.maxhealth += 100;
             saveload.health = saveload.maxhealth;
-            saveload.healthBuy += 50;
+            saveload.healthlvl ++;
         }
 
         UIInitialize();
@@ -70,12 +72,12 @@ public class BuyController : MonoBehaviour
 
     public void OnArmorBuyButtonPressed()
     {
-        if (saveload.money >= saveload.armorBuy)
+        if (saveload.money >= saveload.armorlvl * 100)
         {
-            saveload.money -= saveload.armorBuy;
+            saveload.money -= saveload.armorlvl * 100;
             saveload.maxarmor += 100;
             saveload.armor = saveload.maxarmor;
-            saveload.armorBuy += 50;
+            saveload.armorlvl++;
         }
 
         UIInitialize();
@@ -83,12 +85,12 @@ public class BuyController : MonoBehaviour
 
     public void OnFuelBuyButtonPressed()
     {
-        if (saveload.money >= saveload.fuelBuy)
+        if (saveload.money >= saveload.fuellvl * 100)
         {
-            saveload.money -= saveload.fuelBuy;
-            saveload.maxfuel += 100;
+            saveload.money -= saveload.fuellvl * 100;
+            saveload.maxfuel += 200;
             saveload.fuel = saveload.maxfuel;
-            saveload.fuelBuy += 50;
+            saveload.fuellvl ++;
         }
 
         UIInitialize();
@@ -96,11 +98,11 @@ public class BuyController : MonoBehaviour
 
     public void OnSpeedBuyButtonPressed()
     {
-        if (saveload.money >= saveload.speedBuy)
+        if (saveload.money >= saveload.speedlvl*500)
         {
-            saveload.money -= saveload.speedBuy;
+            saveload.money -= saveload.speedlvl*500;
             saveload.speed += 0.005f;
-            saveload.speedBuy += 500;
+            saveload.speedlvl ++;
         }
 
         UIInitialize();
@@ -108,13 +110,13 @@ public class BuyController : MonoBehaviour
 
     public void OnCannonBuyButtonPressed()
     {
-        if (saveload.money >= saveload.cannonBuy)
+        if (saveload.money >= saveload.cannonlvl)
         {
-            saveload.money -= saveload.cannonBuy;
+            saveload.money -= saveload.cannonlvl;
             saveload.cannonCount += 1;
             if (saveload.cannonCount >= saveload.maxcannonCount)
                 saveload.cannonCount += saveload.maxcannonCount;
-            saveload.cannonBuy += 1000;
+            saveload.cannonlvl ++;
         }
 
         UIInitialize();
@@ -131,6 +133,11 @@ public class BuyController : MonoBehaviour
     public void OnShopCloseButtonPressed()
     {
         ShopPannel.SetActive(false);
+    }
+
+    public void OnReloadButtonGame()
+    {
+        SceneManager.LoadScene(0);
     }
     
 }

@@ -8,6 +8,9 @@ TagManager:
   - Ship
   - FuelStaton
   - MyShip
+  - Chest
+  - Island
+  - Shop
   layers:
   - Default
   - TransparentFX

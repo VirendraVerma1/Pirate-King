@@ -5,6 +5,7 @@ using UnityEngine;
 public class CannonBall : MonoBehaviour
 {
     public int cannonDamage;
+    
     void OnTriggerEnter(Collider col)
     {
         if (col.tag == "Ship")

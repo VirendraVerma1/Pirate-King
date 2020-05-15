@@ -22,11 +22,11 @@ public class saveload : MonoBehaviour
     public static int cannonCount;
     public static int maxcannonCount;
 
-    public static int healthBuy=100;
-    public static int armorBuy=100;
-    public static int fuelBuy=100;
-    public static int speedBuy=500;
-    public static int cannonBuy=1000;
+    public static int healthlvl;
+    public static int armorlvl;
+    public static int fuellvl;
+    public static int speedlvl;
+    public static int cannonlvl;
 
     public static string accountID = " ";
     public static string playerName = " ";

@@ -19,6 +19,11 @@ public class chest : MonoBehaviour
     public Animator anim;
     void Start()
     {
+        money = Random.Range(100, 200);
+        health = Random.Range(50, 100);
+        fuel = Random.Range(200, 400);
+        armor = Random.Range(50, 100);
+
         moneyUI.text = money.ToString();
         healthUI.text = health.ToString();
         fuelUI.text = fuel.ToString();
