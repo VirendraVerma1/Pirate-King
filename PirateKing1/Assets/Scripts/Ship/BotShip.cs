@@ -45,7 +45,7 @@ public class BotShip : MonoBehaviour
         armor = 100;
         maxArmor = 100;
         speed = 2;
-        money = 100;
+        money = 1000;
         fuel = 600;
         fuelTank = 600;
 
@@ -389,7 +389,7 @@ public class BotShip : MonoBehaviour
             
             if (!inFrontOfCannon)
             {
-                transform.Rotate(Vector3.one * 15 * Time.deltaTime);
+                transform.Rotate(Vector3.one * 20 * Time.deltaTime);
                 //float rot = transform.rotation.y+90;
                 //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(new Vector3(0, rot, 0)), Time.deltaTime * 0.7f);
                 //Vector3 currentRotation = gameObject.transform.rotation;
@@ -470,6 +470,7 @@ public class BotShip : MonoBehaviour
         return enemy;
     }
 
+    public GameObject CannonFireFX;
     void FireCannon()
     {
         for (int i = 0; i < cannon; i++)
@@ -477,8 +478,9 @@ public class BotShip : MonoBehaviour
             GameObject go = Instantiate(CannonBallGameObject, ShipCannonsGo[i].transform.position + new Vector3(0, 0.45f, 0), ShipCannonsGo[i].transform.rotation);
             go.GetComponent<CannonBall>().cannonDamage = 10;
             go.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
-            go.transform.GetComponent<Rigidbody>().AddForce(-go.transform.forward * 15, ForceMode.Impulse);
-
+            go.transform.GetComponent<Rigidbody>().AddForce(go.transform.forward * 15, ForceMode.Impulse);
+            GameObject g = Instantiate(CannonFireFX, ShipCannonsGo[i].transform.position + new Vector3(0, 0.45f, 0), ShipCannonsGo[i].transform.rotation);
+            Destroy(g, 3);
         }
     }
 
@@ -486,6 +488,8 @@ public class BotShip : MonoBehaviour
 
     #region functions called by  others
 
+    public GameObject DestroyWarFx;
+    
     public void TakeDamage(float damage)
     {
         if (armor > damage)
@@ -498,7 +502,10 @@ public class BotShip : MonoBehaviour
         if (health < 0)
         {
             //sink TODO
-            Destroy(gameObject);
+            GameObject g = Instantiate(DestroyWarFx, gameObject.transform.position, gameObject.transform.rotation);
+            Destroy(g, 3);
+            Destroy(gameObject, 1);
+            
         }
         else
         {

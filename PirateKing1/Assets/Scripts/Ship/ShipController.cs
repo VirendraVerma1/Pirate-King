@@ -22,7 +22,7 @@ public class ShipController : MonoBehaviour
 
     void Awake()
     {
-        saveload.money = 2000;
+        saveload.money = 1000;
         saveload.health = 100;
         saveload.maxhealth = 100;
         saveload.armor = 100;
@@ -35,6 +35,7 @@ public class ShipController : MonoBehaviour
         UnlockCannon();
         GameObject[] go = GameObject.FindGameObjectsWithTag("Ship");
         totalEnemy = go.Length;
+        isOpenCannonFireButton = true;
     }
 
     public void UnlockCannon()
@@ -86,6 +87,7 @@ public class ShipController : MonoBehaviour
                 islowFuel = false;
             }
             UpdateUI();
+            
         }
     }
 
@@ -111,6 +113,7 @@ public class ShipController : MonoBehaviour
         transform.Translate(movement * movementSpeed * acceleration * Time.deltaTime, Space.World);
 
         CheckEnemy();
+        
     }
 
 
@@ -143,23 +146,46 @@ public class ShipController : MonoBehaviour
         
     }
 
+    public GameObject CannonFireFX;
+    private bool isOpenCannonFireButton;
+    public Image CannonFireButtonLoader;
     public void OnFireButtonUp()
     {
-        //stop linerendrer and shoot
-        for (int i = 0; i < saveload.cannonCount; i++)
+        if (isOpenCannonFireButton)
         {
-            GameObject go = Instantiate(CannonBallGameObject, ShipCannonsGo[i].transform.position + new Vector3(0, 0.6f, 0), ShipCannonsGo[i].transform.rotation);
-            go.GetComponent<CannonBall>().cannonDamage = 10;
-            go.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
-            go.transform.GetComponent<Rigidbody>().AddForce(-go.transform.forward * 15, ForceMode.Impulse);
+            isOpenCannonFireButton = false;
+            //stop linerendrer and shoot
+            for (int i = 0; i < saveload.cannonCount; i++)
+            {
+                GameObject go = Instantiate(CannonBallGameObject, ShipCannonsGo[i].transform.position + new Vector3(0, 0.65f, 0), ShipCannonsGo[i].transform.rotation);
+                go.GetComponent<CannonBall>().cannonDamage = 10;
+                go.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
+                go.transform.GetComponent<Rigidbody>().AddForce(go.transform.forward * 15, ForceMode.Impulse);
+                GameObject g = Instantiate(CannonFireFX, ShipCannonsGo[i].transform.position + new Vector3(0, 0.65f, 0), ShipCannonsGo[i].transform.rotation);
+                Destroy(g, 3);
+            }
+
+            StartCoroutine(DelayLoader(1, 0.05f, CannonFireButtonLoader));
         }
-            
+    }
+
+    IEnumerator DelayLoader(float time, float speed,Image Loader)
+    {
+        float copyTotal=time;
+        while (time > 0)
+        {
+            yield return new WaitForSeconds(speed);
+            time-=speed;
+            Loader.fillAmount = (time / copyTotal * 100);
+        }
+        isOpenCannonFireButton = true;
     }
 
     #endregion
 
     #region other public methods
     public GameObject GameLoosePannel;
+    public GameObject DestroyWarFx;
     public void TakeDamage(float damagea)
     {
         if (saveload.armor > damagea)
@@ -172,12 +198,20 @@ public class ShipController : MonoBehaviour
         if (saveload.health < 0)
         {
             //sink TODO
-            GameLoosePannel.SetActive(true);
-            Destroy(gameObject);
+            
+            GameObject g = Instantiate(DestroyWarFx, gameObject.transform.position, gameObject.transform.rotation);
+            Destroy(g, 3);
+            Destroy(gameObject,1);
+            StartCoroutine(WaitToShow());
         }
         
     }
 
+    IEnumerator WaitToShow()
+    {
+        yield return new WaitForSeconds(2);
+        GameLoosePannel.SetActive(true);
+    }
     public void RechargeFuel(float no)
     {
         if (saveload.fuel < saveload.maxfuel)

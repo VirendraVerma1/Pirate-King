@@ -5,26 +5,31 @@ using UnityEngine;
 public class CannonBall : MonoBehaviour
 {
     public int cannonDamage;
+    public GameObject cannonDamageFXShip;
+
     
     void OnTriggerEnter(Collider col)
     {
         if (col.tag == "Ship")
         {
             col.gameObject.GetComponent<BotShip>().TakeDamage(cannonDamage);
-            Destroy(gameObject);
+            GameObject g = Instantiate(cannonDamageFXShip, gameObject.transform.position,gameObject.transform.rotation);
+            Destroy(g, 3f);
+            Destroy(gameObject,3);
         }
         else if (col.tag == "MyShip")
         {
             col.gameObject.GetComponent<ShipController>().TakeDamage(cannonDamage);
-            print("Touch");
-            Destroy(gameObject);
+            GameObject g = Instantiate(cannonDamageFXShip, gameObject.transform.position, gameObject.transform.rotation);
+            Destroy(g, 3f);
+            Destroy(gameObject,3);
         }
-        else if (col.tag == "Island")
+        else 
         {
-
+            Destroy(gameObject, 2);
         }
 
-       // Destroy(gameObject,2);
+       // 
     }
 
     
